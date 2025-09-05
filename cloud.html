@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Story for Purnima</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: linear-gradient(to top, #6a85b6 0%, #bac8e0 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .font-romance {
+            font-family: 'Dancing Script', cursive;
+        }
+        
+        /* --- Book Structure --- */
+        .book-container {
+            width: 90vw;
+            height: 80vh;
+            max-width: 1000px;
+            max-height: 600px;
+            position: relative;
+            perspective: 2500px;
+        }
+        .page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+            background: linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%);
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            color: white;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+            overflow: hidden; 
+        }
+        
+        .page.active {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 1;
+        }
+        /* --- Text Readability --- */
+        .page p {
+            color: #4a2d6a; 
+            text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.4);
+            font-weight: 500;
+        }
+        
+        #heaven-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%);
+            z-index: -1; overflow: hidden;
+        }
+        .glow-text {
+            color: #fff;
+            animation: glow 2.5s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            0% { text-shadow: 0 0 10px #fff, 0 0 20px #ffc1e3; }
+            100% { text-shadow: 0 0 5px #fff, 0 0 10px #ff9ac9; }
+        }
+        #image-scan-container {
+            position: relative; width: 220px; height: 280px;
+            border-radius: 15px; overflow: hidden;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.7);
+            margin-bottom: 2rem; display: none; background: #333;
+        }
+        #purnima-image {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+        #scanner-line {
+            position: absolute; width: 100%; height: 10px;
+            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.9), transparent);
+            box-shadow: 0 0 15px 5px white; border-radius: 50%; left: 0;
+        }
+        .scanning { animation: scan 2s ease-in-out; }
+        @keyframes scan { from { top: -10%; } to { top: 110%; } }
+        
+        #progress-container {
+            width: 80%; max-width: 300px; height: 20px;
+            background-color: rgba(255,255,255,0.3); border-radius: 10px;
+            overflow: hidden; margin-top: 1rem;
+        }
+        #progress-bar {
+            width: 0%; height: 100%;
+            background: linear-gradient(to right, #ff89c4, #ff4da6);
+            border-radius: 10px; transition: width 2.5s ease-in-out;
+        }
+        #no-button { transition: transform 0.5s ease-out; position: relative; }
+        #heart-container {
+            position: relative; width: 90%; max-width: 400px;
+            height: 250px; margin: auto;
+        }
+        .heart {
+            position: absolute; width: 40px; height: 40px; cursor: pointer;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            animation: float 6s ease-in-out infinite;
+        }
+        .heart svg { fill: #ff4757; pointer-events: none; }
+        @keyframes float {
+            0% { transform: translateY(0px) translateX(0px); } 50% { transform: translateY(-20px) translateX(10px); } 100% { transform: translateY(0px) translateX(0px); }
+        }
+        .heart:nth-child(2) { animation-delay: -1.5s; } .heart:nth-child(3) { animation-delay: -3s; } .heart:nth-child(4) { animation-delay: -4.5s; }
+        .turn-page-btn {
+            opacity: 0; transition: opacity 0.5s ease-in-out; pointer-events: none;
+            transform-origin: center;
+        }
+        .turn-page-btn.visible { opacity: 1; pointer-events: auto; }
+        
+        .shaking {
+            /* FIXED: Animation now runs 4 times and stops */
+            animation: shake 1.5s ease-in-out 4;
+        }
+        @keyframes shake {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        #chit-bowl {
+            display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .chit {
+            width: 60px; height: 40px; background: #fff8e1; border: 2px solid #ffd54f;
+            border-radius: 5px; cursor: pointer; transition: all 0.3s ease;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+            display: flex; justify-content: center; align-items: center; font-size: 1.2rem;
+            color: #4a2d6a; font-weight: bold;
+        }
+        .chit:hover { transform: translateY(-10px) scale(1.1); }
+        .chit.unfolding {
+            width: 250px; height: auto; padding: 20px; font-size: 1.2rem;
+            transform: translateY(0) scale(1); cursor: default; color: #4a2d6a;
+        }
+        
+        .fade-in-text {
+            opacity: 0;
+        }
+        .page.active .fade-in-text {
+            animation: fade-in-up 1s ease-out 1s forwards;
+        }
+        @keyframes fade-in-up {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        #page6 {
+            justify-content: flex-start;
+            padding-top: 2rem;
+            padding-bottom: 7rem; 
+            overflow-y: auto;
+        }
+        #typed-text-container {
+            position: relative;
+            z-index: 1;
+        }
+        #turn-page-btn-6 {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+        }
+        #typed-text {
+            max-width: 90%;
+            margin-left: auto;
+            margin-right: auto;
+            font-size: 1.1rem;
+            color: #4a2d6a;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
+            line-height: 1.6;
+        }
+        .typing-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 1.2rem;
+            background-color: #4a2d6a;
+            animation: blink 0.7s infinite;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+        /* Floating Hearts Background (Restored & Optimized) */
+        .floating-heart {
+            position: absolute;
+            bottom: -50px;
+            font-size: 20px;
+            color: rgba(255, 105, 180, 0.6);
+            animation: float-up linear infinite;
+            z-index: 0;
+        }
+        @keyframes float-up {
+            to { transform: translateY(-100vh); opacity: 0; }
+        }
+        
+    </style>
+</head>
+<body>
+    <!-- FIXED: Added preload and muted attributes for better browser compatibility -->
+    <audio id="bg-music" loop preload="metadata" muted src="https://archive.org/download/Peaceful-Relaxing-Calm-Music/Peaceful-Relaxing-Calm-Music.mp3"></audio>
+    <div id="heaven-bg"></div>
+    <div id="book-container">
+        <!-- Chapter 1 -->
+        <div id="page1" class="page active">
+            <h1 class="text-4xl md:text-6xl font-romance glow-text mb-4">A Story for Purnima</h1>
+            <p class="text-lg fade-in-text">This is the beginning of our forever.</p>
+            <button id="turn-page-btn-1" class="turn-page-btn mt-8 bg-pink-500 text-white font-bold py-3 px-8 rounded-full shadow-lg" onclick="playMusic(); turnToChapter(2)">
+                Open The Book
+            </button>
+        </div>
+        <!-- Chapter 2: The Gate -->
+        <div id="page2" class="page">
+             <div id="image-scan-container">
+                <!-- 
+                    IMPORTANT: As requested, this now points to a local file.
+                    For this to work, make sure "purnima.jpg" is in the same 
+                    folder as this HTML file on your GitHub repository.
+                -->
+                 <img id="purnima-image" src="purnima.jpg" alt="Photo of Purnima">
+                 <div id="scanner-line"></div>
+             </div>
+             <div class="content-container transition-opacity duration-500 text-center">
+                 <h1 class="text-3xl md:text-4xl font-romance glow-text mb-8">Chapter I: The Gates of Heaven</h1>
+                 <p id="angel-question" class="text-lg mb-6 max-w-sm fade-in-text">My Dearest Purnima... are you an Angel? <br> Only angels may pass these gates...</p>
+                 <div id="initial-buttons" class="space-x-4">
+                     <button onclick="handleAnswer('yes')" class="bg-pink-500 text-white font-bold py-3 px-8 rounded-full shadow-lg">YES</button>
+                     <button onclick="handleAnswer('no')" class="bg-gray-300 text-gray-800 font-bold py-3 px-8 rounded-full shadow-lg">NO</button>
+                 </div>
+                 <div id="result-message" class="text-lg mt-6 opacity-0 transition-opacity duration-1000 max-w-sm mx-auto" style="color: #4a2d6a;"></div>
+                 <button id="try-again-btn" class="hidden mt-6 bg-yellow-500 text-white font-bold py-3 px-8 rounded-full shadow-lg transform hover:scale-110 transition-transform" onclick="resetAngelQuestion()">Try Again</button>
+                 <button id="turn-page-btn-2" class="turn-page-btn mt-6 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-3 px-8 rounded-full shadow-xl" onclick="turnToChapter(3)">
+                     Turn Page &rarr;
+                 </button>
+            </div>
+        </div>
+        
+        <!-- Chapter 3: The Apsara -->
+        <div id="page3" class="page">
+            <h1 class="text-3xl md:text-4xl font-romance glow-text mb-4">Chapter II: The Apsara</h1>
+            <p id="smile-p1" class="text-xl font-bold mb-4 max-w-md fade-in-text">I see you are blushing like an angel...</p>
+            <p id="smile-p2" class="text-lg font-bold mb-4 max-w-md hidden">Scanning for smile...</p>
+            <div id="progress-container" class="hidden">
+                <div id="progress-bar"></div>
+            </div>
+            <p id="smile-p3" class="text-lg font-bold mt-4 max-w-md hidden"></p>
+            <button id="turn-page-btn-3" class="turn-page-btn mt-6 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-3 px-8 rounded-full shadow-xl" onclick="turnToChapter(4)">
+                Turn Page &rarr;
+            </button>
+        </div>
+        <!-- Chapter 4: The Question -->
+         <div id="page4" class="page">
+             <div class="relative w-full h-full flex flex-col justify-center items-center p-4">
+                 <h1 class="text-3xl md:text-4xl font-romance glow-text mb-8">Chapter III: The Question</h1>
+                 <p class="text-2xl md:text-3xl mb-8 fade-in-text">Do you love Deepak?</p>
+                 <div class="flex space-x-6 items-center">
+                     <button id="yes-button" onclick="handleLoveAnswer('yes')" class="bg-green-500 text-white font-bold py-3 px-8 rounded-full shadow-lg z-10 hidden">YES</button>
+                     <button id="no-button" onmouseover="runawayButton(this)" ontouchstart="runawayButton(this)" class="bg-red-500 text-white font-bold py-3 px-8 rounded-full shadow-lg">NO</button>
+                 </div>
+                  <p id="love-confirm-msg" class="text-lg mt-8 opacity-0 transition-opacity duration-1000 max-w-md">I knew it! My heart felt it all along ❤️. I just needed to hear it from you.</p>
+                 <button id="turn-page-btn-4" class="turn-page-btn absolute bottom-10 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-3 px-8 rounded-full shadow-xl" onclick="turnToChapter(5)">
+                     Turn Page &rarr;
+                 </button>
+            </div>
+        </div>
+        
+        <!-- Chapter 5: The Hearts -->
+        <div id="page5" class="page">
+             <div class="text-center">
+                 <h1 id="heart-title" class="text-3xl md:text-4xl font-romance glow-text mb-2">Chapter IV: My Heart is Yours</h1>
+                 <p id="heart-counter" class="text-lg mb-2 fade-in-text">Catch all the pieces of my heart before time runs out!</p>
+                 <div id="timer" class="text-2xl font-bold text-yellow-300 mb-4">Time Left: 5s</div>
+                 <div id="heart-container"></div>
+                  <div id="failure-message" class="hidden mt-6">
+                      <p class="text-xl mb-4">It's not easy to catch Deepak's heart... ❤️</p>
+                      <button onclick="startGame()" class="bg-yellow-500 text-white font-bold py-3 px-8 rounded-full shadow-lg transform hover:scale-110 transition-transform">Try Again</button>
+                  </div>
+                 <button id="turn-page-btn-5" class="turn-page-btn absolute bottom-10 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-3 px-8 rounded-full shadow-xl" onclick="turnToChapter(6)">
+                     Turn to the Final Chapter &rarr;
+                 </button>
+            </div>
+        </div>
+        <!-- Chapter 6: From the Heart -->
+        <div id="page6" class="page">
+             <div id="floating-hearts-container"></div>
+             <div id="typed-text-container">
+                 <h1 class="text-3xl md:text-4xl font-romance glow-text mb-6">From My Heart...</h1>
+                 <p id="typed-text"></p>
+             </div>
+             <button id="turn-page-btn-6" class="turn-page-btn bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-3 px-8 rounded-full shadow-xl" onclick="turnToChapter(7)">
+                 One last surprise...
+             </button>
+        </div>
+        <!-- Chapter 7: The Chit Game -->
+        <div id="page7" class="page">
+            <h1 class="text-3xl md:text-4xl font-romance glow-text mb-4">A Little Game of Fate...</h1>
+            <p id="chit-instruction" class="text-lg mb-8 max-w-sm fade-in-text">Pick a chit from the bowl. Let's see what your destiny holds!</p>
+            <div id="chit-bowl">
+                <div class="chit" onclick="pickChit(this)">A</div>
+                <div class="chit" onclick="pickChit(this)">B</div>
+                <div class="chit" onclick="pickChit(this)">C</div>
+                <div class="chit" onclick="pickChit(this)">D</div>
+            </div>
+            <a id="whatsapp-btn" href="#" class="turn-page-btn bg-green-500 text-white font-bold py-3 px-8 rounded-full shadow-xl">
+                Chat with Deepu ❤️
+            </a>
+        </div>
+    </div>
+    <script>
+        let currentChapter = 1;
+        let isTurning = false;
+        
+        // FIXED: Improved music playback function with better browser compatibility
+        function playMusic() {
+            const music = document.getElementById('bg-music');
+            
+            // First unmute the audio (required for autoplay policies)
+            music.muted = false;
+            
+            // Try to play with better error handling
+            music.play().then(() => {
+                console.log("Music started successfully!");
+            }).catch(e => {
+                console.error("Music playback failed:", e);
+                // Fallback: try to enable music on next user interaction
+                document.addEventListener('click', () => {
+                    music.play().catch(err => console.log("Still can't play music:", err));
+                }, { once: true });
+            });
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const btn1 = document.getElementById('turn-page-btn-1');
+            setTimeout(() => {
+                btn1.classList.add('visible');
+                setTimeout(() => btn1.classList.add('shaking'), 500);
+            }, 2000);
+        });
+        function turnToChapter(chapterNumber) {
+            if (isTurning) return;
+            isTurning = true;
+            const currentPageElement = document.getElementById(`page${currentChapter}`);
+            const nextPageElement = document.getElementById(`page${chapterNumber}`);
+            currentPageElement.style.opacity = 0;
+            setTimeout(() => {
+                currentPageElement.classList.remove('active');
+                nextPageElement.classList.add('active');
+                
+                if (chapterNumber === 3) {
+                    runSmileScanner();
+                } else if (chapterNumber === 4) {
+                    setTimeout(() => document.getElementById('yes-button').classList.remove('hidden'), 6000);
+                } else if (chapterNumber === 5) {
+                    startGame();
+                } else if (chapterNumber === 6) {
+                    startTypingAnimation();
+                    createFloatingHearts();
+                }
+                setTimeout(() => {
+                    nextPageElement.style.opacity = 1;
+                    currentChapter = chapterNumber;
+                    isTurning = false;
+                }, 100); 
+            }, 1000);
+        }
+        function handleAnswer(answer) {
+            document.getElementById('initial-buttons').style.display = 'none';
+            document.getElementById('angel-question').style.display = 'none';
+            const imageContainer = document.getElementById('image-scan-container');
+            imageContainer.style.display = 'block';
+            
+            const scanner = document.getElementById('scanner-line');
+            scanner.classList.add('scanning');
+            scanner.addEventListener('animationend', () => scanner.classList.remove('scanning'), { once: true });
+            const resultMsg = document.getElementById('result-message');
+            setTimeout(() => {
+                resultMsg.style.opacity = 1;
+                const btn2 = document.getElementById('turn-page-btn-2');
+                if (answer === 'yes') {
+                    resultMsg.innerHTML = "Scan complete... My heart was right. you are most beautifull girl in the world ❤️.";
+                    btn2.classList.add('visible');
+                    setTimeout(() => btn2.classList.add('shaking'), 500);
+                } else {
+                    resultMsg.innerHTML = "Lie detected! My heart knows the truth... You are the most beautiful girl in the universe 😍. Let's try that again, shall we? 😘";
+                    document.getElementById('try-again-btn').classList.remove('hidden');
+                }
+            }, 2000);
+        }
+        function resetAngelQuestion() {
+            document.getElementById('result-message').style.opacity = 0;
+            document.getElementById('try-again-btn').classList.add('hidden');
+            document.getElementById('image-scan-container').style.display = 'none';
+            document.getElementById('initial-buttons').style.display = 'flex';
+            document.getElementById('angel-question').style.display = 'block';
+        }
+        function runSmileScanner() {
+            const p2 = document.getElementById('smile-p2');
+            const p3 = document.getElementById('smile-p3');
+            const progressContainer = document.getElementById('progress-container');
+            const progressBar = document.getElementById('progress-bar');
+            const nextButton = document.getElementById('turn-page-btn-3');
+            
+            setTimeout(() => {
+                p2.classList.remove('hidden');
+                progressContainer.classList.remove('hidden');
+                setTimeout(() => { progressBar.style.width = '70%'; }, 100);
+            }, 1000);
+            setTimeout(() => {
+                p3.innerText = "Almost there... please give me a bigger smile! 😊";
+                p3.classList.remove('hidden');
+            }, 3600);
+            
+            setTimeout(() => {
+                p3.classList.add('hidden');
+                progressBar.style.width = '0%';
+                setTimeout(() => { progressBar.style.width = '100%'; }, 100);
+            }, 8000); 
+            
+            setTimeout(() => {
+                p2.classList.add('hidden');
+                progressContainer.classList.add('hidden');
+                p3.innerText = "Perfect! Now you look just like my angel. Please, enter. ❤️";
+                p3.classList.remove('hidden');
+                nextButton.classList.add('visible');
+                setTimeout(() => nextButton.classList.add('shaking'), 500);
+            }, 11000); 
+        }
+        function runawayButton(button) {
+             const x = (Math.random() - 0.5) * 200;
+             const y = (Math.random() - 0.5) * 200;
+             button.style.transform = `translate(${x}px, ${y}px)`;
+        }
+        function handleLoveAnswer(answer) {
+            if (answer === 'yes') {
+                document.getElementById('no-button').style.display = 'none';
+                const btn4 = document.getElementById('turn-page-btn-4');
+                document.getElementById('love-confirm-msg').style.opacity = 1;
+                btn4.classList.add('visible');
+                setTimeout(() => btn4.classList.add('shaking'), 500);
+            }
+        }
+        let heartsLeft = 4, timerInterval = null, timeLeft = 5;
+        function startGame() {
+            if (timerInterval) clearInterval(timerInterval);
+            document.getElementById('failure-message').classList.add('hidden');
+            const btn5 = document.getElementById('turn-page-btn-5');
+            btn5.classList.remove('visible', 'shaking');
+            document.getElementById('heart-title').innerText = "Chapter IV: My Heart is Yours";
+            const container = document.getElementById('heart-container');
+            container.innerHTML = '';
+            container.classList.remove('hidden');
+            document.getElementById('heart-counter').classList.remove('hidden');
+            document.getElementById('timer').classList.remove('hidden');
+            heartsLeft = 4; timeLeft = 5; updateTimerDisplay();
+            for (let i = 0; i < 4; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'heart';
+                heart.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path></svg>`;
+                heart.style.left = `${Math.random() * 85}%`; heart.style.top = `${Math.random() * 80}%`;
+                heart.addEventListener('click', () => catchHeart(heart));
+                container.appendChild(heart);
+            }
+            timerInterval = setInterval(() => {
+                timeLeft--; updateTimerDisplay();
+                if (timeLeft <= 0) { clearInterval(timerInterval); if (heartsLeft > 0) handleGameFailure(); }
+            }, 1000);
+        }
+        function catchHeart(heartElement) {
+            if (timeLeft <= 0 || heartsLeft === 0) return;
+            heartElement.style.pointerEvents = 'none'; heartElement.style.opacity = '0'; heartElement.style.transform = 'scale(0)';
+            heartsLeft--;
+            if (heartsLeft === 0) {
+                clearInterval(timerInterval);
+                const btn5 = document.getElementById('turn-page-btn-5');
+                document.getElementById('heart-title').innerText = "All hearts caught! ❤️";
+                document.getElementById('heart-counter').innerText = "You've captured every piece of my heart. It belongs to you, now and forever 🥰";
+                btn5.classList.add('visible');
+                setTimeout(() => btn5.classList.add('shaking'), 500);
+                document.getElementById('heart-container').classList.add('hidden'); document.getElementById('timer').classList.add('hidden');
+            }
+        }
+        function handleGameFailure() {
+            document.getElementById('heart-container').classList.add('hidden');
+            document.getElementById('heart-counter').classList.add('hidden');
+            document.getElementById('timer').classList.add('hidden');
+            document.getElementById('failure-message').classList.remove('hidden');
+        }
+        function updateTimerDisplay() { document.getElementById('timer').innerText = `Time Left: ${timeLeft}s`; }
+        
+        function startTypingAnimation() {
+            const textElement = document.getElementById('typed-text');
+            const textToType = "Hello Purnima... From the very first time I saw you, something in me changed. I still remember that night in my hostel room when we first chatted — a moment I'll never forget. I loved how you noticed the little things about me, my shoes, my dress… even when I was too shy to say much in class. Honestly, I was a little scared of talking to girls, but with you it always felt different. Sometimes I even felt jealous when you talked to other guys, like that day in the practical lab — because deep inside, I knew you were the most precious part of my world. Your smile is brighter than the moon, your eyes more beautiful than any star. I don't need anything else from life — just you. ❤️ Thank you for being a part of my life — it's truly one of the most amazing moments I've ever lived. ✨ Hope you like this. 💕";
+            let i = 0;
+            textElement.innerHTML = "";
+            const btn6 = document.getElementById('turn-page-btn-6');
+            const typingInterval = setInterval(() => {
+                if (i < textToType.length) {
+                    textElement.innerHTML = textToType.substring(0, i + 1) + '<span class="typing-cursor"></span>';
+                    i++;
+                } else {
+                    clearInterval(typingInterval);
+                    textElement.innerHTML = textToType; // Remove cursor when done
+                    btn6.classList.add('visible');
+                    setTimeout(() => btn6.classList.add('shaking'), 8000); // 8 second delay
+                }
+            }, 50); 
+        }
+        
+        function createFloatingHearts() {
+            const container = document.getElementById('floating-hearts-container');
+            if (!container) return; // Safety check
+            container.innerHTML = '';
+            for (let i = 0; i < 10; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'floating-heart';
+                heart.innerHTML = '❤';
+                heart.style.left = `${Math.random() * 100}%`;
+                heart.style.animationDuration = `${(Math.random() * 7) + 8}s`; // 8-15 seconds
+                heart.style.animationDelay = `${Math.random() * 5}s`;
+                heart.style.fontSize = `${(Math.random() * 15) + 10}px`;
+                container.appendChild(heart);
+            }
+        }
+        function pickChit(pickedChit) {
+            const allChits = document.querySelectorAll('.chit');
+            allChits.forEach(chit => {
+                if(chit !== pickedChit) {
+                    chit.style.display = 'none'; 
+                }
+            });
+            pickedChit.classList.add('unfolding');
+            pickedChit.onclick = null;
+            pickedChit.innerHTML = "Wow! You picked the special one's number...";
+            document.getElementById('chit-instruction').style.display = 'none';
+            
+            const yourPhoneNumber = '917347303128';
+            const message = encodeURIComponent('love you deepu');
+            const whatsappLink = `https://wa.me/${yourPhoneNumber}?text=${message}`;
+            const whatsappBtn = document.getElementById('whatsapp-btn');
+            whatsappBtn.href = whatsappLink;
+            setTimeout(() => {
+                whatsappBtn.classList.add('visible');
+                setTimeout(() => whatsappBtn.classList.add('shaking'), 500);
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
